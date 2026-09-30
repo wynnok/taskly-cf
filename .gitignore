@@ -1,0 +1,13 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env*
+!.env.example
+unified-task
+*.db
+*.db-shm
+*.db-wal
+private/
+coverage/
+.DS_Store
+__pycache__/

@@ -1,0 +1,6 @@
+# Only required for a fresh database. Production SQL contains migrated login credentials.
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=replace-with-a-long-random-password
+# Fill these in if the migrated database has no Server酱³ endpoint.
+SERVERCHAN_UID=
+SERVERCHAN_SENDKEY=

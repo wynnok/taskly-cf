@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Taskly · 定时任务</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div id="login-view" class="login-view" hidden>
+      <form id="login-form" class="login-card">
+        <div class="brand-mark">✓</div>
+        <h1>欢迎回来</h1>
+        <p class="muted">登录 Taskly，安排每一件重要的事。</p>
+        <label
+          >账号<input name="username" autocomplete="username" required maxlength="100"
+        /></label>
+        <label
+          >密码<input
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            maxlength="1024"
+        /></label>
+        <p id="login-error" class="error" role="alert"></p>
+        <button class="primary" type="submit">登录</button>
+        <p class="login-foot">TASKLY / 定时任务管理</p>
+      </form>
+    </div>
+    <div id="app-view" class="shell" hidden>
+      <aside class="sidebar">
+        <a href="/" class="brand"
+          ><span class="brand-mark">✓</span
+          ><span>Taskly<small>把重要的事，交给时间</small></span></a
+        >
+        <div class="nav-caption">工作空间</div>
+        <nav aria-label="主导航">
+          <a href="/" data-page="dashboard"><span>◫</span>概览</a>
+          <a href="/tasks" data-page="tasks"><span>☷</span>任务管理</a>
+          <a href="/calendar" data-page="calendar"><span>▦</span>任务日历</a>
+          <a href="/groups" data-page="groups"><span>▤</span>分组管理</a>
+          <a href="/monitoring" data-page="monitoring"><span>◉</span>运行监控</a>
+          <a href="/settings" data-page="settings"><span>⚙</span>设置</a>
+        </nav>
+        <div class="sidebar-bottom">
+          <span class="live-dot"></span> Cloudflare Workers<small id="timezone-label"
+            >Asia/Shanghai</small
+          >
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <button id="mobile-menu" class="icon-button" aria-label="切换菜单">☰</button
+          ><span>个人工作空间</span>
+          <div>
+            <span id="username"></span><button id="logout" class="text-button">退出登录</button>
+          </div>
+        </header>
+        <main id="main" tabindex="-1"><p class="loading">正在加载…</p></main>
+        <footer>
+          Taskly · Webhook 提醒 <span>时间均以 <b id="footer-timezone">Asia/Shanghai</b> 显示</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="dialog"><div id="dialog-content"></div></dialog>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+node_modules
+.wrangler
+unified-task
+private
+package-lock.json
+*.db
+scripts/*.py
+tests/*.py

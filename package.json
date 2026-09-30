@@ -1,0 +1,25 @@
+{
+  "name": "taskly-cf",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/index.js && node --check public/app.js && wrangler deploy --dry-run",
+    "test": "node --test tests/*.test.js && python3 -m unittest discover -s tests -p 'test_*.py'",
+    "db:migrate": "wrangler d1 migrations apply taskly --local",
+    "db:migrate:remote": "wrangler d1 migrations apply taskly --remote",
+    "export:production": "python3 scripts/export_d1.py tasks.db --output private/production.sql",
+    "format": "prettier --write src public tests/*.js *.json *.jsonc docs README.md GLOSSARY.md",
+    "format:check": "prettier --check src public tests/*.js *.json *.jsonc docs README.md GLOSSARY.md"
+  },
+  "devDependencies": {
+    "miniflare": "5.20260926.1-alpha",
+    "prettier": "3.6.2",
+    "wrangler": "4.144.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

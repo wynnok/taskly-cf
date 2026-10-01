@@ -6,3 +6,4 @@ package-lock.json
 *.db
 scripts/*.py
 tests/*.py
+public/vendor/

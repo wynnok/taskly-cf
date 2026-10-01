@@ -59,11 +59,19 @@ test('scripts and styles load while missing assets stay 404', async () => {
   for (const [path, type] of [
     ['/app.js', /javascript/],
     ['/style.css', /text\/css/],
+    ['/css/base.css', /text\/css/],
+    ['/css/components.css', /text\/css/],
+    ['/css/pages.css', /text\/css/],
+    ['/phosphor/style.css', /text\/css/],
+    ['/phosphor/Phosphor.woff2', /font\/woff2/],
+    ['/vendor/echarts.min.js', /javascript/],
+    ['/favicon.svg', /image\/svg\+xml/],
+    ['/favicon.ico', /image\/(x-icon|vnd.microsoft.icon)/],
   ]) {
     const response = await mf.dispatchFetch(`http://localhost${path}`, { redirect: 'manual' });
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type'), type);
-    assert.ok((await response.text()).length > 0);
+    assert.ok((await response.arrayBuffer()).byteLength > 0);
   }
   assert.equal((await mf.dispatchFetch('http://localhost/missing.js')).status, 404);
 });

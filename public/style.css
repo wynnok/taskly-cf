@@ -52,6 +52,28 @@ small,
 .sidebar-brand {
   text-decoration: none;
 }
+.sidebar-toggle {
+  position: absolute;
+  top: 80px;
+  right: -14px;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid #36516f;
+  border-radius: 50%;
+  background: #203e5c;
+  color: #d5e4f5;
+  box-shadow: var(--shadow-sm);
+}
+.sidebar-toggle:hover {
+  background: var(--primary-700);
+  border-color: var(--primary-400);
+  color: #fff;
+  transform: none;
+}
 .container {
   width: 100%;
   max-width: none;
@@ -70,6 +92,13 @@ small,
 }
 #filters .filter-actions {
   margin-left: auto;
+}
+.chart-card,
+.chart-side {
+  min-width: 0;
+}
+.chart-side {
+  grid-template-columns: minmax(0, 1fr);
 }
 @container (min-width: 1100px) {
   [data-page='tasks'] .row-title-cell,
@@ -95,7 +124,7 @@ small,
 }
 @container (max-width: 560px) {
   .chart-side {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .monitor-grid {
     grid-template-columns: 1fr;
@@ -426,8 +455,44 @@ dialog::backdrop {
   color: var(--primary-700);
 }
 @media (min-width: 1024px) {
+  :root.sidebar-collapsed {
+    --sidebar-w: 76px;
+  }
+  .sidebar {
+    transition: width var(--transition);
+  }
   .container {
     width: calc(100% - var(--sidebar-w));
+    transition:
+      width var(--transition),
+      margin-left var(--transition);
+  }
+  .sidebar-collapsed .sidebar-brand {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .sidebar-collapsed .brand-text,
+  .sidebar-collapsed .sidebar-nav a span,
+  .sidebar-collapsed .sidebar-foot .logout-btn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sidebar-collapsed .sidebar-nav a,
+  .sidebar-collapsed .sidebar-foot .logout-btn {
+    justify-content: center;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .sidebar-collapsed .sidebar-nav a i,
+  .sidebar-collapsed .sidebar-foot .logout-btn i {
+    font-size: 21px;
   }
 }
 @media (max-width: 768px) {

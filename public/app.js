@@ -55,6 +55,23 @@ function closeMenu() {
 function disposeCharts() {
   for (const chart of charts.splice(0)) chart.dispose();
 }
+function setSidebarCollapsed(collapsed) {
+  document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
+  const button = $('#sidebar-toggle'),
+    label = collapsed ? '展开侧栏' : '收起侧栏';
+  button.setAttribute('aria-expanded', String(!collapsed));
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  button.innerHTML = icon(collapsed ? 'caret-double-right' : 'caret-double-left');
+}
+try {
+  setSidebarCollapsed(localStorage.getItem('taskly.sidebarCollapsed') === 'true');
+} catch {
+  setSidebarCollapsed(false);
+}
+document.querySelectorAll('.sidebar-nav a, .sidebar-brand').forEach((link) => {
+  link.title = link.textContent.trim();
+});
 const main = $('#main'),
   dialog = $('#dialog');
 let toastTimer,
@@ -838,6 +855,15 @@ $('#mobile-menu').addEventListener('click', () => {
   $('#mobile-menu').setAttribute('aria-expanded', String(open));
 });
 $('#mobile-logout').addEventListener('click', () => $('#logout').click());
+$('#sidebar-toggle').addEventListener('click', () => {
+  const collapsed = !document.documentElement.classList.contains('sidebar-collapsed');
+  setSidebarCollapsed(collapsed);
+  try {
+    localStorage.setItem('taskly.sidebarCollapsed', String(collapsed));
+  } catch {
+    // The sidebar remains usable when browser storage is unavailable.
+  }
+});
 document.addEventListener('click', (event) => {
   const button = event.target.closest('.password-toggle');
   if (!button) return;
@@ -871,6 +897,14 @@ window.addEventListener('resize', () => {
   for (const chart of charts) chart.resize();
   if (window.innerWidth >= 1024) closeMenu();
 });
+// Charts must follow the content width throughout the sidebar transition.
+let chartResizeFrame;
+new ResizeObserver(() => {
+  cancelAnimationFrame(chartResizeFrame);
+  chartResizeFrame = requestAnimationFrame(() => {
+    if (main.clientWidth) for (const chart of charts) chart.resize();
+  });
+}).observe(main);
 window.addEventListener('popstate', () => guarded(renderPage));
 async function signedIn(auth) {
   state.auth = auth;

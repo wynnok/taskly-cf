@@ -61,11 +61,19 @@ Cloudflare 官方：[创建 D1 数据库](https://developers.cloudflare.com/d1/g
 
 ### 2. 用 D1 网页 Console 导入生产数据
 
-1. 确认 `taskly` 是刚新建的空数据库；不要在已经有表或数据的数据库上继续。
+1. 确认刚创建的 D1 数据库（默认示例名 `taskly`）是空的；不要在已经有表或数据的数据库上继续。
 2. 打开数据库里的 **Console**。
-3. 在本机文本编辑器打开 `private/production.sql`，全选并复制文件内容。
-4. 粘贴到 D1 的 Console 查询框，点 **Execute**，等待成功提示。整份 SQL 大约几十 KB，里面有多条语句，请一次性粘贴并执行，不要拆分执行。
-5. 在 Console 中分别运行以下查询，确认导入正确：
+3. 先在查询编辑框输入 `SELECT 1;` 并点 **Execute**，确认返回 `1`。编辑框里必须能看到 SQL 文本；如果提示 `Requests without any query are not supported`，表示这次请求没有带上查询内容，请重新点进 SQL 编辑框后输入/粘贴。
+4. 在本机文本编辑器打开 `private/production.sql`，全选并复制文件内容。回到 D1 的 **Console SQL 编辑框**，确认整份文本已经显示在编辑框里，再点 **Execute**。文件约几十 KB、含多条语句，请一次性粘贴执行，不要拆分。
+5. 如果执行失败或再次出现“没有 query”，先不要重复导入；在 Console 中查看表是否已创建：
+
+   ```sql
+   SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;
+   ```
+
+   如果已经出现 `tasks`、`groups` 等表，先停下并确认当前数据库状态；导入脚本只允许对空库执行一次。
+
+6. 导入成功后，在 Console 中分别运行以下查询，确认数据正确：
 
    ```sql
    SELECT COUNT(*) AS tasks FROM tasks;
@@ -90,53 +98,67 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 粘贴 SQL 并执�
 
 `DB` 是 Worker 程序访问数据库时使用的绑定变量名，代码通过 `env.DB` 读取它；D1 资源名可以自定义，数据库 ID 指向你账号下的实际数据库。比如你把资源名设为 `taskly-prod`，配置中就写 `"database_name": "taskly-prod"`，同时保留 `"binding": "DB"`。部署后可在 Worker 的 **Bindings** 页面确认绑定显示为 `DB → taskly-prod`（或你选的名称）。Cloudflare 的绑定说明见[官方 D1 绑定教程](https://developers.cloudflare.com/d1/get-started/#3-bind-your-worker-to-your-d1-database)。
 
-### 4. 在网页创建 Worker，并预先放入 Server酱³密钥
+### 4. 从 Create application 通过 GitHub 创建并部署
 
-先创建空 Worker 并放入密钥，再连接 GitHub，可以避免刚上线时定时任务尚未配置好投递地址。
+首次部署前，先在 GitHub 网页编辑 `wrangler.jsonc`：把 `triggers` 中的 Cron 临时改为空数组：
 
-1. 回到 Cloudflare Dashboard，进入 **Workers & Pages → Create application → Start with Hello World**。
-2. Worker 名称填写 **`taskly-cf`**，点 **Deploy**。名称必须与仓库 `wrangler.jsonc` 中的 `name` 完全一致。
-3. 打开 Worker，进入 **Settings → Variables and Secrets**（部分界面在 **Settings → Variables**）。新增两个类型为 **Secret** 的运行时密钥：
+```jsonc
+"triggers": { "crons": [] },
+```
+
+保留前一步填好的 D1 ID 和 `binding: "DB"`。提交到 `main`。此时 Cloudflare 还未连接仓库，所以不会触发 Worker 部署；空 Cron 可让首次部署后有时间配置运行时密钥，不会提前扫描生产任务。
+
+然后在 Cloudflare Dashboard 按你习惯的入口创建应用：
+
+1. 进入 **Workers & Pages → Create application → Continue with GitHub**。
+2. 首次使用时授权 Cloudflare Workers GitHub App 访问仓库；建议只授权 `wynnok/taskly-cf`。
+3. 选择 GitHub 账号、`wynnok/taskly-cf` 仓库和 `main` 分支，继续。
+4. 部署设置填写：
+
+   | 设置项 | 填写内容 |
+   | --- | --- |
+   | Project name | `taskly-cf`（必须与 `wrangler.jsonc` 的 `name` 相同） |
+   | Build command | `npx wrangler d1 migrations apply DB --remote` |
+   | Deploy command | `npx wrangler deploy` |
+   | Root directory | `/` 或留空（仓库根目录） |
+
+5. 点 **Save and Deploy**。Build command 会在首次发布前登记并应用初始数据库 migration；SQL 使用 `IF NOT EXISTS`，所以此前导入的数据会保留。以后每次推送到 `main`，也会先应用尚未运行的 D1 migrations，再部署 Worker。
+6. 在 **Deployments → View build history** 查看日志，确认 Build 和 Deploy 成功。官方步骤见 [Workers Builds：连接仓库](https://developers.cloudflare.com/workers/ci-cd/builds/)和[构建配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)。
+
+### 5. 添加运行时密钥并开启 Cron
+
+1. 部署完成后，打开刚创建的 Worker，进入 **Settings → Variables and Secrets**。新增两个类型为 **Secret** 的运行时密钥：
 
    | 名称 | 值 |
    | --- | --- |
    | `SERVERCHAN_UID` | 你的 Server酱³ UID |
    | `SERVERCHAN_SENDKEY` | 你的 Server酱³ SendKey |
 
-   保存密钥。请选 **Secret**，不要把密钥作为普通明文变量提交到 GitHub。
+   保存密钥。Build 设置中的变量只供构建过程使用，不能代替 Worker 的运行时密钥；这里要在 Worker 的 Settings 下新增。
 
-原生产库没有 Server酱³ 的 UID/SendKey，因此导入后的默认通道地址为空；设置这两个密钥后，应用会自动构造投递地址。也可以登录应用后在 Webhook 设置页填写完整地址。Server酱³ 接口说明：[官方文档](https://sc3.ft07.com/doc)。
+2. 回到 GitHub 网页编辑 `wrangler.jsonc`，把 Cron 从空数组恢复为：
 
-### 5. 从 Cloudflare 网页连接 GitHub 并发布
+   ```jsonc
+   "triggers": { "crons": ["* * * * *"] },
+   ```
 
-1. 在 Worker 页面进入 **Settings → Builds**，点 **Connect**。
-2. 按提示授权 Cloudflare Workers GitHub App，只授予它访问 `wynnok/taskly-cf` 仓库的权限，然后选择仓库和 `main` 分支。
-3. 仓库根目录保持 `/`。Build settings 填写：
+   提交到 `main`。Cloudflare 会自动重新构建并部署；Worker 开始每分钟扫描任务。
 
-   | 设置项 | 填写内容 |
-   | --- | --- |
-   | Build command | `npx wrangler d1 migrations apply DB --remote` |
-   | Deploy command | `npx wrangler deploy` |
-   | Root directory | `/` 或留空（仓库根目录） |
-
-4. 保存并启动构建。Build command 会在首次发布前应用仓库里的初始数据库 migration；它使用 `IF NOT EXISTS`，所以在上一步已经导入完整 SQL 的情况下不会覆盖任务数据。之后每次向 `main` 提交代码，Cloudflare 都会先应用尚未运行的 D1 migrations，再部署 Worker。
-5. 在 **Deployments → View build history** 查看构建日志，确认 Build 和 Deploy 都成功。官方步骤见 [Workers Builds：连接仓库](https://developers.cloudflare.com/workers/ci-cd/builds/)和[构建配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)。
-
-如果原来已经建过 `taskly-cf` Worker，就不用再创建 Hello World：直接在该 Worker 的 **Settings → Variables and Secrets** 设置密钥，然后 **Settings → Builds → Connect**。
+原生产库没有 Server酱³ 的 UID/SendKey，所以导入后的默认通道地址为空；设置这两个密钥后，应用会自动构造投递地址。也可以登录应用后在 Webhook 设置页填写完整地址。Server酱³ 接口说明：[官方文档](https://sc3.ft07.com/doc)。
 
 ### 6. 打开应用并完成首次检查
 
 1. 在 Worker 的 Overview 页面打开 `https://taskly-cf.<你的 workers.dev 子域>.workers.dev`。
 2. 使用旧应用的用户名和密码登录。原有账号保留，旧明文密码已转成安全哈希；建议登录后在账号设置里更换密码。因为是迁移现有数据库，**不需要**设置 `INITIAL_ADMIN_PASSWORD`。
 3. 进入应用设置，测试 Server酱³ 通道。收到测试消息后，再检查任务列表、分组和执行历史。
-4. 确认 Worker 的 **Bindings** 页面显示 `DB → taskly`。仓库配置中的 Cron 为 `* * * * *`，Worker 首次部署后会每分钟扫描任务，不需要手动再添加一个 Cron。若想查看 Cron 触发情况，打开 Worker 的 **Settings → Triggers → Cron Triggers** 或 **View events**。新建/改名后 Cron 事件可能需要一段时间才显示。
+4. 确认 Worker 的 **Bindings** 页面显示 `DB → taskly`（如果你使用自定义数据库名，则显示为 `DB → 你的数据库名`）。Cron 已在上一步通过 GitHub 配置开启，不需要再手工添加。查看触发情况可打开 Worker 的 **Settings → Triggers → Cron Triggers** 或 **View events**。新建/改名后 Cron 事件可能需要一段时间才显示。
 5. 在应用运行监控中查看“上次调度完成”。
 
 如果是全新安装而不是导入本项目数据库，设置页没有可用账号时，需在 Worker 的 **Settings → Variables and Secrets** 中设置 Secret `INITIAL_ADMIN_PASSWORD` 后重新部署；首次初始化用户名默认为 `admin`，也可用普通变量 `INITIAL_ADMIN_USERNAME` 指定。
 
 ## 用 Cloudflare 网页部署（空白新库）
 
-如果不迁移旧数据，跳过生产 SQL 导入。D1 数据库名称可以自定义；创建时记录它的名称和 ID，并在 `wrangler.jsonc` 中将 `database_name` 和 `database_id` 分别设为对应值，`binding` 仍保持为 `DB`。先在 D1 Console 执行仓库的 `migrations/0001_initial.sql`，再按上面的流程创建 Worker、设置 `SERVERCHAN_UID` / `SERVERCHAN_SENDKEY` 并连接 GitHub。新库还需要设置 `INITIAL_ADMIN_PASSWORD` Secret。后续发布步骤相同。
+如果不迁移旧数据，跳过生产 SQL 导入，在 D1 Console 执行仓库的 `migrations/0001_initial.sql`。数据库名称可自定义；将名称和 ID 写入 `wrangler.jsonc`，绑定保留 `DB`。按上面的 GitHub 导入流程首次部署后，在 Worker 的 **Settings → Variables and Secrets** 添加 `SERVERCHAN_UID`、`SERVERCHAN_SENDKEY` 和 `INITIAL_ADMIN_PASSWORD` 三个 Secret，再把 Cron 配置恢复为 `* * * * *` 并提交。新库初始化账号默认为 `admin`。
 
 ## 调度行为与兼容范围
 

@@ -164,6 +164,7 @@ async function renderPage() {
   if (!state.auth) return;
   const version = ++renderVersion,
     page = currentPage();
+  main.dataset.page = page;
   document
     .querySelectorAll('nav [data-page]')
     .forEach((a) => a.classList.toggle('active', a.dataset.page === page));

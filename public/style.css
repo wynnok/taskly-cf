@@ -53,7 +53,53 @@ small,
   text-decoration: none;
 }
 .container {
+  width: 100%;
+  max-width: none;
   min-width: 0;
+  container-type: inline-size;
+}
+/* Keep form headings and cards on the same readable, centered column. */
+.container[data-page='settings'] > * {
+  max-width: 1040px;
+  margin-left: auto;
+  margin-right: auto;
+}
+#filters input[type='search'] {
+  flex-basis: 280px;
+  max-width: 560px;
+}
+#filters .filter-actions {
+  margin-left: auto;
+}
+@container (min-width: 1100px) {
+  [data-page='tasks'] .row-title-cell,
+  [data-page='tasks'] .task-message {
+    max-width: clamp(320px, 30cqi, 680px);
+  }
+}
+/* Break at the available content width, including the space used by navigation. */
+@container (max-width: 900px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-main .chart-body {
+    height: 300px;
+  }
+  .chart-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+}
+@container (max-width: 560px) {
+  .chart-side {
+    grid-template-columns: 1fr;
+  }
+  .monitor-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .actions {
   display: flex;
@@ -474,7 +520,7 @@ select {
     max-width: 100%;
   }
 }
-.filter-bar .tag-filter {
+#filters .tag-filter {
   flex: 0 1 110px;
   width: 110px;
   min-width: 80px;
@@ -485,7 +531,7 @@ select {
   box-shadow: none;
 }
 @media (max-width: 640px) {
-  .filter-bar .tag-filter {
+  #filters .tag-filter {
     width: 100%;
     max-width: none;
   }

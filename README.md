@@ -38,80 +38,105 @@ curl 'http://localhost:8787/cdn-cgi/local/scheduled'
 
 此操作会实际发送本地库中的到期提醒。测试套件的所有外部提醒均使用模拟响应，不会联系生产通道。
 
-## 导入现有生产数据并部署
+## 用 Cloudflare 网页部署（生产数据迁移）
 
-以下流程针对原生产库迁移。**创建一个空 D1 数据库，先导入生产 SQL，再登记工程迁移。** 新安装、无需旧数据的场景只需 `npm run db:migrate:remote`，不运行生产 SQL。
+下面按 Cloudflare Dashboard 网页操作来写，不要求用 Wrangler 命令部署。适用于把本仓库部署到 Cloudflare，并导入本项目原有的 `tasks.db` 数据。Cloudflare 菜单文字偶尔会调整；括号内附了对应官方文档。
 
-1. 登录 Cloudflare，创建数据库：
+### 先准备好生产 SQL
 
-   ```bash
-   npx wrangler login
-   npx wrangler d1 create taskly
+当前工作目录已经有离线生成的 `private/production.sql`。如果你重新生成了 SQL，生成过程仍要在有原始 `tasks.db` 的电脑上完成；数据库和 SQL 都不会上传到 GitHub。
+
+- 这个 SQL 包含原来的任务、分组、历史和登录信息。所有邮件提醒已转成 Webhook，默认目标为 Server酱³；SMTP 设置和旧会话不迁移。
+- 文件还包含建表语句及空库保护。请只把它导入一个**新建且为空**的 D1 数据库，并且只执行一次。不要先手动建表，也不要对已经有数据的库重复执行。
+- 当前生产数据预期为 **12 个任务、4 个分组、196 条历史**，其中 15 条历史来自已经删除的旧任务，仍会保留。
+- `private/production.sql` 可能含有任务内容、登录密码哈希和旧 Webhook 地址；不要提交到 GitHub，也不要发给他人。
+
+### 1. 在网页创建 D1 数据库
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)，进入 **Workers & Pages → D1 SQL Database**（也可能显示为 **Storage & databases → D1**）。
+2. 点 **Create database**，名称填写 `taskly`，然后点 **Create**。位置可选 Asia-Pacific。
+3. 打开刚创建的 `taskly` 数据库，在页面详情中复制 **Database ID**。稍后要把它填入仓库的配置文件。
+
+Cloudflare 官方：[创建 D1 数据库](https://developers.cloudflare.com/d1/get-started/#2-create-a-database)。
+
+### 2. 用 D1 网页 Console 导入生产数据
+
+1. 确认 `taskly` 是刚新建的空数据库；不要在已经有表或数据的数据库上继续。
+2. 打开数据库里的 **Console**。
+3. 在本机文本编辑器打开 `private/production.sql`，全选并复制文件内容。
+4. 粘贴到 D1 的 Console 查询框，点 **Execute**，等待成功提示。整份 SQL 大约几十 KB，里面有多条语句，请一次性粘贴并执行，不要拆分执行。
+5. 在 Console 中分别运行以下查询，确认导入正确：
+
+   ```sql
+   SELECT COUNT(*) AS tasks FROM tasks;
+   SELECT COUNT(*) AS groups FROM groups;
+   SELECT COUNT(*) AS history FROM execution_history;
+   SELECT channel, COUNT(*) AS count FROM tasks GROUP BY channel;
+   PRAGMA foreign_key_check;
    ```
 
-2. 将返回的 `database_id` 写入 `wrangler.jsonc` 的 D1 绑定；当前全零 ID 是占位符。Worker 中的绑定名称必须保留 `DB`。
+   结果应为 12 个任务、4 个分组、196 条历史；所有任务的 channel 都是 `webhook`；`foreign_key_check` 不应返回行。
 
-3. 离线导出生产 SQL（仓库当前工作目录已生成 `private/production.sql`）：
+Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 粘贴 SQL 并执行：[D1 网页入门教程](https://developers.cloudflare.com/d1/get-started/#4-run-a-query-against-your-d1-database)。
 
-   ```bash
-   npm run export:production
-   ```
+### 3. 把 D1 ID 写进 GitHub 仓库配置
 
-   导出以只读方式访问 `tasks.db`，保留任务、分组、历史、ID 与自增序列；邮件任务全部改成 `channel='webhook'`、`webhook_id=Server酱³`。原登录账号保留，明文密码转换成 PBKDF2 SHA-256 哈希，旧会话不迁移。SMTP 设置被丢弃。
+这个 Worker 通过 Cloudflare 的 GitHub Builds 从 `main` 分支发布。D1 绑定配置在仓库文件里管理，因此新建数据库后要先在 GitHub 网页更新一次配置：
 
-   旧库中已删除任务的历史仍保留，并记录 `legacy_task_id`；新应用删除任务也会保留历史。默认分组引用异常的任务归入“默认”。已存在的 Webhook 通道保留，任务引用失效时归入 Server酱³。
+1. 打开 [wynnok/taskly-cf 的 GitHub 仓库](https://github.com/wynnok/taskly-cf)，进入 `wrangler.jsonc`。
+2. 点铅笔图标 **Edit this file**，找到 `d1_databases` 下的 `database_id`。
+3. 把 `00000000-0000-0000-0000-000000000000` 替换为第 1 步复制的 Database ID。保持 `database_name` 为 `taskly`、`binding` 为 `DB`，其它配置不改。
+4. 点 **Commit changes**，直接提交到 `main`。
 
-   `private/production.sql` 含真实任务、登录哈希和可能存在的 Webhook 凭据，已被 `.gitignore` 排除。**SQL 只能执行一次，目标必须为空**；导入保护会拒绝非空目标，不会覆盖已有生产数据。它自带建表语句，无需手动拼接 schema，也不包含 D1 不支持的显式事务控制。
+`DB` 是 Worker 程序访问数据库时使用的绑定名；数据库 ID 则指向你账号下刚建好的那一个库。部署后可在 Worker 的 **Bindings** 页面确认 D1 绑定显示为 `DB → taskly`。Cloudflare 的绑定说明见[官方 D1 绑定教程](https://developers.cloudflare.com/d1/get-started/#3-bind-your-worker-to-your-d1-database)。
 
-   如果旧密码已经是 Werkzeug 哈希，工具要求显式设置新密码：
+### 4. 在网页创建 Worker，并预先放入 Server酱³密钥
 
-   ```bash
-   read -rs TASKLY_NEW_PASSWORD
-   export TASKLY_NEW_PASSWORD
-   python3 scripts/export_d1.py tasks.db --output private/production.sql --password-env TASKLY_NEW_PASSWORD
-   unset TASKLY_NEW_PASSWORD
-   ```
+先创建空 Worker 并放入密钥，再连接 GitHub，可以避免刚上线时定时任务尚未配置好投递地址。
 
-4. 导入空数据库并登记初始迁移：
+1. 回到 Cloudflare Dashboard，进入 **Workers & Pages → Create application → Start with Hello World**。
+2. Worker 名称填写 **`taskly-cf`**，点 **Deploy**。名称必须与仓库 `wrangler.jsonc` 中的 `name` 完全一致。
+3. 打开 Worker，进入 **Settings → Variables and Secrets**（部分界面在 **Settings → Variables**）。新增两个类型为 **Secret** 的运行时密钥：
 
-   ```bash
-   npx wrangler d1 execute taskly --remote --file=private/production.sql
-   npm run db:migrate:remote
-   ```
+   | 名称 | 值 |
+   | --- | --- |
+   | `SERVERCHAN_UID` | 你的 Server酱³ UID |
+   | `SERVERCHAN_SENDKEY` | 你的 Server酱³ SendKey |
 
-   初始 migration 使用 `IF NOT EXISTS` 和 `INSERT OR IGNORE`，可在生产 SQL 已导入之后登记，不会修改导入的任务与设置。导入后核对：
+   保存密钥。请选 **Secret**，不要把密钥作为普通明文变量提交到 GitHub。
 
-   ```bash
-   npx wrangler d1 execute taskly --remote --command="SELECT COUNT(*) AS tasks FROM tasks; SELECT COUNT(*) AS groups FROM groups; SELECT COUNT(*) AS history FROM execution_history; SELECT channel,COUNT(*) FROM tasks GROUP BY channel; PRAGMA foreign_key_check;"
-   ```
+原生产库没有 Server酱³ 的 UID/SendKey，因此导入后的默认通道地址为空；设置这两个密钥后，应用会自动构造投递地址。也可以登录应用后在 Webhook 设置页填写完整地址。Server酱³ 接口说明：[官方文档](https://sc3.ft07.com/doc)。
 
-   此次提供的库应为 **12 个任务、4 个分组、196 条历史，全部任务为 webhook**。其中 15 条历史属于已删除任务，仍保留。逐项报告在 `private/production.report.json`。
+### 5. 从 Cloudflare 网页连接 GitHub 并发布
 
-5. 配置 Server酱³：
+1. 在 Worker 页面进入 **Settings → Builds**，点 **Connect**。
+2. 按提示授权 Cloudflare Workers GitHub App，只授予它访问 `wynnok/taskly-cf` 仓库的权限，然后选择仓库和 `main` 分支。
+3. 仓库根目录保持 `/`。Build settings 填写：
 
-   ```bash
-   npx wrangler secret put SERVERCHAN_UID
-   npx wrangler secret put SERVERCHAN_SENDKEY
-   ```
+   | 设置项 | 填写内容 |
+   | --- | --- |
+   | Build command | `npx wrangler d1 migrations apply taskly --remote` |
+   | Deploy command | `npx wrangler deploy` |
+   | Root directory | `/` 或留空（仓库根目录） |
 
-   或在应用设置页填写完整地址：`https://UID.push.ft07.com/send/SENDKEY.send`。设置页地址优先于 secrets。原库没有 Server酱³ 端点，迁移创建的默认通道地址为空，配置后才能投递；旧 Webhook 地址单独保存为“原 Webhook 通道”。[Server酱³ 官方接口文档](https://sc3.ft07.com/doc)。
+4. 保存并启动构建。Build command 会在首次发布前应用仓库里的初始数据库 migration；它使用 `IF NOT EXISTS`，所以在上一步已经导入完整 SQL 的情况下不会覆盖任务数据。之后每次向 `main` 提交代码，Cloudflare 都会先应用尚未运行的 D1 migrations，再部署 Worker。
+5. 在 **Deployments → View build history** 查看构建日志，确认 Build 和 Deploy 都成功。官方步骤见 [Workers Builds：连接仓库](https://developers.cloudflare.com/workers/ci-cd/builds/)和[构建配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)。
 
-6. 发布 Worker：
+如果原来已经建过 `taskly-cf` Worker，就不用再创建 Hello World：直接在该 Worker 的 **Settings → Variables and Secrets** 设置密钥，然后 **Settings → Builds → Connect**。
 
-   ```bash
-   npm run deploy
-   ```
+### 6. 打开应用并完成首次检查
 
-   在设置页测试 Server酱³ 通道。之后检查运行监控的“上次调度完成”；Cron 配置传播可能需要最多 15 分钟。[Cloudflare Cron 文档](https://developers.cloudflare.com/workers/configuration/cron-triggers/)。
+1. 在 Worker 的 Overview 页面打开 `https://taskly-cf.<你的 workers.dev 子域>.workers.dev`。
+2. 使用旧应用的用户名和密码登录。原有账号保留，旧明文密码已转成安全哈希；建议登录后在账号设置里更换密码。因为是迁移现有数据库，**不需要**设置 `INITIAL_ADMIN_PASSWORD`。
+3. 进入应用设置，测试 Server酱³ 通道。收到测试消息后，再检查任务列表、分组和执行历史。
+4. 确认 Worker 的 **Bindings** 页面显示 `DB → taskly`。仓库配置中的 Cron 为 `* * * * *`，Worker 首次部署后会每分钟扫描任务，不需要手动再添加一个 Cron。若想查看 Cron 触发情况，打开 Worker 的 **Settings → Triggers → Cron Triggers** 或 **View events**。新建/改名后 Cron 事件可能需要一段时间才显示。
+5. 在应用运行监控中查看“上次调度完成”。
 
-新安装的数据库还需要配置初始化密码：
+如果是全新安装而不是导入本项目数据库，设置页没有可用账号时，需在 Worker 的 **Settings → Variables and Secrets** 中设置 Secret `INITIAL_ADMIN_PASSWORD` 后重新部署；首次初始化用户名默认为 `admin`，也可用普通变量 `INITIAL_ADMIN_USERNAME` 指定。
 
-```bash
-npx wrangler secret put INITIAL_ADMIN_PASSWORD
-# 如需用户名不同于 admin，可再设置 INITIAL_ADMIN_USERNAME。
-```
+## 用 Cloudflare 网页部署（空白新库）
 
-迁移后的账号直接使用旧用户名与旧密码登录，建议通过设置页更换密码。
+如果不迁移旧数据，跳过生产 SQL 导入。先在 D1 Console 执行仓库的 `migrations/0001_initial.sql`，再按上面的流程创建 Worker、填 D1 ID、设置 `SERVERCHAN_UID` / `SERVERCHAN_SENDKEY` 并连接 GitHub。新库还需要设置 `INITIAL_ADMIN_PASSWORD` Secret。后续发布步骤相同。
 
 ## 调度行为与兼容范围
 

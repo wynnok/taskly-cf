@@ -78,7 +78,8 @@ export async function sendWebhook(
   };
   const options = {
     method: target.method === 'get' ? 'GET' : 'POST',
-    redirect: 'error',
+    // Workers supports follow/manual only; reject redirects via response.ok below.
+    redirect: 'manual',
     signal: AbortSignal.timeout(10000),
   };
   url = render(url, variables, encodeURIComponent);

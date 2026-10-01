@@ -59,21 +59,30 @@ curl 'http://localhost:8787/cdn-cgi/local/scheduled'
 
 Cloudflare 官方：[创建 D1 数据库](https://developers.cloudflare.com/d1/get-started/#2-create-a-database)。
 
-### 2. 用 D1 网页 Console 导入生产数据
+### 2. 检查 D1，再导入生产 SQL 文件
 
 1. 确认刚创建的 D1 数据库（默认示例名 `taskly`）是空的；不要在已经有表或数据的数据库上继续。
 2. 打开数据库里的 **Console**。
 3. 先在查询编辑框输入 `SELECT 1;` 并点 **Execute**，确认返回 `1`。编辑框里必须能看到 SQL 文本；如果提示 `Requests without any query are not supported`，表示这次请求没有带上查询内容，请重新点进 SQL 编辑框后输入/粘贴。
-4. 在本机文本编辑器打开 `private/production.sql`，全选并复制文件内容。回到 D1 的 **Console SQL 编辑框**，确认整份文本已经显示在编辑框里，再点 **Execute**。文件约几十 KB、含多条语句，请一次性粘贴执行，不要拆分。
-5. 如果执行失败或再次出现“没有 query”，先不要重复导入；在 Console 中查看表是否已创建：
+4. 检查应用表是否存在：
 
    ```sql
-   SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;
+   SELECT name FROM sqlite_master
+   WHERE type = 'table' AND name IN ('tasks', 'groups', 'execution_history')
+   ORDER BY name;
    ```
 
-   如果已经出现 `tasks`、`groups` 等表，先停下并确认当前数据库状态；导入脚本只允许对空库执行一次。
+   如果查询已经列出这些表，先不要导入：继续查任务和历史数量，确认是不是已经完整导入。D1 自动创建的内部表不表示生产数据已经导入。
 
-6. 导入成功后，在 Console 中分别运行以下查询，确认数据正确：
+5. 从项目目录打开本机终端。先确认本机 `wrangler.jsonc` 的 `database_id` 已替换成第 1 步复制的 ID（如果你只在 GitHub 网页改过，也把同一个 ID 填到本机文件里）；`database_name` 要对应实际 D1 名称，`binding` 保持 `DB`。然后执行文件导入命令。若尚未安装项目依赖，先执行 `npm ci`；如果 Wrangler 尚未登录，运行 `npx wrangler login` 并在浏览器完成 Cloudflare 授权。将命令中的 `taskly` 换成你实际创建的数据库名称：
+
+   ```bash
+   npx wrangler d1 execute taskly --remote --file=private/production.sql
+   ```
+
+   这是单独的一次数据导入命令；Worker 的创建和部署仍按后面的 **Create application → Continue with GitHub** 网页步骤操作。Cloudflare 官方把 `.sql` 文件导入指向 Wrangler 的 `d1 execute --file` 命令；D1 Console 适合执行短查询和 SQL 片段：[官方导入说明](https://developers.cloudflare.com/d1/best-practices/import-export-data/)。
+
+6. 回到 D1 **Console**，分别运行以下查询，确认数据正确：
 
    ```sql
    SELECT COUNT(*) AS tasks FROM tasks;
@@ -85,7 +94,7 @@ Cloudflare 官方：[创建 D1 数据库](https://developers.cloudflare.com/d1/g
 
    结果应为 12 个任务、4 个分组、196 条历史；所有任务的 channel 都是 `webhook`；`foreign_key_check` 不应返回行。
 
-Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 粘贴 SQL 并执行：[D1 网页入门教程](https://developers.cloudflare.com/d1/get-started/#4-run-a-query-against-your-d1-database)。
+Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 输入和运行 SQL 片段：[D1 网页入门教程](https://developers.cloudflare.com/d1/get-started/#4-run-a-query-against-your-d1-database)。
 
 ### 3. 把 D1 ID 写进 GitHub 仓库配置
 

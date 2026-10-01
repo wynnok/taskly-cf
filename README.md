@@ -78,6 +78,7 @@ Cloudflare 官方：[创建 D1 数据库](https://developers.cloudflare.com/d1/g
 
    ```bash
    npx wrangler d1 execute taskly --remote --file=private/production.sql
+   npx wrangler d1 migrations apply DB --remote
    ```
 
    这是单独的一次数据导入命令；Worker 的创建和部署仍按后面的 **Create application → Continue with GitHub** 网页步骤操作。Cloudflare 官方把 `.sql` 文件导入指向 Wrangler 的 `d1 execute --file` 命令；D1 Console 适合执行短查询和 SQL 片段：[官方导入说明](https://developers.cloudflare.com/d1/best-practices/import-export-data/)。
@@ -127,11 +128,11 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 输入和运行 SQ
    | 设置项 | 填写内容 |
    | --- | --- |
    | Project name | `taskly-cf`（必须与 `wrangler.jsonc` 的 `name` 相同） |
-   | Build command | `npx wrangler d1 migrations apply DB --remote` |
+   | Build command | 留空（本项目无需编译，数据库已在导入步骤初始化） |
    | Deploy command | `npx wrangler deploy` |
    | Root directory | `/` 或留空（仓库根目录） |
 
-5. 点 **Save and Deploy**。Build command 会在首次发布前登记并应用初始数据库 migration；SQL 使用 `IF NOT EXISTS`，所以此前导入的数据会保留。以后每次推送到 `main`，也会先应用尚未运行的 D1 migrations，再部署 Worker。
+5. 点 **Save and Deploy**。Cloudflare 会读取仓库配置，打包 Worker 代码和网页静态资源并发布。以后每次推送到 `main` 会自动重新部署；如果更新中包含新的数据库 migration，需要先执行 `npx wrangler d1 migrations apply DB --remote`。默认构建令牌不一定有 D1 修改权限，因此这里不把数据库迁移放到 Build command 中。
 6. 在 **Deployments → View build history** 查看日志，确认 Build 和 Deploy 成功。官方步骤见 [Workers Builds：连接仓库](https://developers.cloudflare.com/workers/ci-cd/builds/)和[构建配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)。
 
 ### 5. 添加运行时密钥并开启 Cron

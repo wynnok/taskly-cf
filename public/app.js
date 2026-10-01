@@ -194,7 +194,9 @@ async function renderPage() {
       settings: '设置',
     }[page] + ' - 任务提醒';
   disposeCharts();
-  main.innerHTML = '<p class="loading">正在加载…</p>';
+  main.classList.add('is-loading');
+  main.innerHTML =
+    '<div class="page-loading" role="status"><span class="page-loading-spinner" aria-hidden="true"></span><span>正在加载…</span></div>';
   try {
     const html = await {
       dashboard,
@@ -218,6 +220,8 @@ async function renderPage() {
   } catch (e) {
     if (version === renderVersion && state.auth)
       main.innerHTML = `<div class="notice warn">${escape(e.message)}</div><button data-action="refresh">重试</button>`;
+  } finally {
+    if (version === renderVersion) main.classList.remove('is-loading');
   }
 }
 async function navigate(path) {

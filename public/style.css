@@ -425,10 +425,34 @@ dialog::backdrop {
 .help p {
   margin: 4px 0;
 }
-.loading {
-  text-align: center;
-  padding: 80px 16px;
-  color: var(--text-muted);
+#app-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.container.is-loading {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.page-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--primary-100);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 #toast {
   position: fixed;

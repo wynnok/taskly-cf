@@ -103,12 +103,8 @@ small,
 #filters .filter-actions {
   margin-left: auto;
 }
-.chart-card,
-.chart-side {
+.chart-card {
   min-width: 0;
-}
-.chart-side {
-  grid-template-columns: minmax(0, 1fr);
 }
 @container (min-width: 1100px) {
   [data-page='tasks'] .row-title-cell,
@@ -127,14 +123,10 @@ small,
   .chart-main .chart-body {
     height: 300px;
   }
-  .chart-side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: auto;
-  }
 }
 @container (max-width: 560px) {
-  .chart-side {
-    grid-template-columns: minmax(0, 1fr);
+  .chart-groups .chart-body {
+    height: 240px;
   }
   .monitor-grid {
     grid-template-columns: 1fr;
@@ -565,12 +557,6 @@ dialog::backdrop {
   .chart-body {
     padding-left: 0;
     padding-right: 0;
-  }
-  .chart-side .chart-body {
-    min-height: 130px;
-  }
-  .channel-chart {
-    gap: 12px;
   }
   .stat-card {
     padding: 16px;

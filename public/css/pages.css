@@ -1045,36 +1045,8 @@
   padding-bottom: var(--space-3);
 }
 
-.chart-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-main .chart-body {
-  height: 360px;
-}
-
-.chart-side {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: var(--space-4);
-  min-height: 0;
-}
-
-.chart-side .chart-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.chart-side .chart-body {
-  flex: 1;
-  height: auto;
-  min-height: 150px;
-}
-
 .chart-body {
-  height: 200px;
+  height: 300px;
   padding: 0 var(--space-3) var(--space-2);
 }
 

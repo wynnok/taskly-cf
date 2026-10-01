@@ -246,7 +246,6 @@ async function dashboard() {
   });
   state.chartData = {
     daily: days,
-    channels: [{ name: 'Webhook', value: stats.tasks.total }],
     groups: state.groups.map((g) => ({ name: g.name, value: g.task_count })),
   };
   const success = days.slice(-7).reduce((n, d) => n + d.success, 0);
@@ -272,7 +271,7 @@ async function dashboard() {
     ) +
     targetNotice(settings) +
     `<section class="stat-grid">${stat('clipboard-text', '任务总数', stats.tasks.total, `已启用 ${stats.tasks.enabled} · 停用 ${stats.tasks.total - stats.tasks.enabled}`, 'primary', 'stat-card-primary')}${stat('arrows-clockwise', '近 7 日执行', executions, `今日 ${days.at(-1).success + days.at(-1).failed} 次 · 日均 ${(executions / 7).toFixed(1)} 次`, 'info')}${stat('target', '近 7 日成功率', executions ? Math.round((success / executions) * 100) + '%' : '—', `成功 ${success} · 失败 ${failed}`, 'success')}${stat('warning-octagon', '需要关注', failedTasks, failedTasks ? '<a class="attention-link" href="/tasks?last_status=failed" data-page="tasks">最近失败任务，建议优先排查</a>' : '没有失败任务', failedTasks ? 'danger' : 'muted', failedTasks ? 'stat-card-danger' : '')}</section>
-    <section class="chart-grid"><article class="panel chart-card chart-main"><div class="panel-header"><h2>${icon('chart-line-up')} 执行趋势</h2><span class="panel-badge">近 14 天</span></div><div class="chart-body" id="chart-trend" role="img" aria-label="近十四天成功和失败执行趋势"></div></article><div class="chart-side"><article class="panel chart-card"><div class="panel-header"><h2>${icon('share-network')} 渠道分布</h2></div><div class="chart-body" id="chart-channels" role="img" aria-label="Webhook 任务渠道分布"></div></article><article class="panel chart-card"><div class="panel-header"><h2>${icon('folders')} 分组任务量</h2></div><div class="chart-body" id="chart-groups" role="img" aria-label="各分组的任务数量"></div></article></div></section>
+    <section class="chart-grid"><article class="panel chart-card chart-main"><div class="panel-header"><h2>${icon('chart-line-up')} 执行趋势</h2><span class="panel-badge">近 14 天</span></div><div class="chart-body" id="chart-trend" role="img" aria-label="近十四天成功和失败执行趋势"></div></article><article class="panel chart-card chart-groups"><div class="panel-header"><h2>${icon('folders')} 分组任务量</h2></div><div class="chart-body" id="chart-groups" role="img" aria-label="各分组的任务数量"></div></article></section>
     <section class="panel"><div class="panel-header panel-header-stack"><div><h2>${icon('clock-counter-clockwise')} 最近任务</h2><p class="panel-description">最近添加的任务及其执行与调度情况。</p></div><a class="btn-link" href="/tasks" data-page="tasks">查看全部 ${icon('arrow-right')}</a></div><div class="table-wrap"><table class="data-table"><thead><tr><th>任务</th><th>分组</th><th>计划</th><th>下次执行</th><th>最近结果</th></tr></thead><tbody>${recent || '<tr><td colspan="5" class="empty">还没有任务，去创建第一个提醒吧。</td></tr>'}</tbody></table></div></section>`
   );
 }
@@ -360,42 +359,6 @@ function renderCharts() {
         }),
         lineStyle: { width: 2.5 },
         areaStyle: { opacity: 0.12 },
-      },
-    ],
-  });
-
-  // 渠道分布：环形图
-  const channelTotal = data.channels.reduce(function (sum, item) {
-    return sum + item.value;
-  }, 0);
-  makeChart('chart-channels', {
-    color: [palette.primary, palette.success, palette.muted],
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: 'rgba(15, 23, 42, 0.92)',
-      borderWidth: 0,
-      textStyle: { color: '#f8fafc', fontSize: 12 },
-      padding: [8, 12],
-    },
-    legend: {
-      bottom: 0,
-      left: 'center',
-      itemWidth: 12,
-      itemHeight: 12,
-      textStyle: { color: palette.text, fontSize: 12 },
-    },
-    series: [
-      {
-        type: 'pie',
-        radius: ['52%', '74%'],
-        center: ['50%', '42%'],
-        avoidLabelOverlap: true,
-        label: { show: false },
-        labelLine: { show: false },
-        itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 4 },
-        data: channelTotal
-          ? data.channels
-          : [{ name: '暂无任务', value: 1, itemStyle: { color: palette.muted } }],
       },
     ],
   });

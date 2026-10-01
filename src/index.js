@@ -646,6 +646,7 @@ export default {
       if (path.startsWith('/api/')) response = await api(request, env);
       else {
         if (!['GET', 'HEAD'].includes(request.method)) fail('请求方式不支持', 405);
+        // Assets serves index.html at / and redirects /index.html back to /.
         const assetPath = [
           '/',
           '/tasks',
@@ -655,7 +656,7 @@ export default {
           '/monitoring',
           '/login',
         ].includes(path)
-          ? '/index.html'
+          ? '/'
           : path;
         const url = new URL(request.url);
         url.pathname = assetPath;

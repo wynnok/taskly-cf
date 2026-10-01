@@ -125,12 +125,12 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 输入和运行 SQ
 3. 选择 GitHub 账号、`wynnok/taskly-cf` 仓库和 `main` 分支，继续。
 4. 部署设置填写：
 
-   | 设置项 | 填写内容 |
-   | --- | --- |
-   | Project name | `taskly-cf`（必须与 `wrangler.jsonc` 的 `name` 相同） |
-   | Build command | 留空（本项目无需编译，数据库已在导入步骤初始化） |
-   | Deploy command | `npx wrangler deploy` |
-   | Root directory | `/` 或留空（仓库根目录） |
+   | 设置项         | 填写内容                                              |
+   | -------------- | ----------------------------------------------------- |
+   | Project name   | `taskly-cf`（必须与 `wrangler.jsonc` 的 `name` 相同） |
+   | Build command  | 留空（本项目无需编译，数据库已在导入步骤初始化）      |
+   | Deploy command | `npx wrangler deploy`                                 |
+   | Root directory | `/` 或留空（仓库根目录）                              |
 
 5. 点 **Save and Deploy**。Cloudflare 会读取仓库配置，打包 Worker 代码和网页静态资源并发布。以后每次推送到 `main` 会自动重新部署；如果更新中包含新的数据库 migration，需要先执行 `npx wrangler d1 migrations apply DB --remote`。默认构建令牌不一定有 D1 修改权限，因此这里不把数据库迁移放到 Build command 中。
 6. 在 **Deployments → View build history** 查看日志，确认 Build 和 Deploy 成功。官方步骤见 [Workers Builds：连接仓库](https://developers.cloudflare.com/workers/ci-cd/builds/)和[构建配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)。
@@ -139,9 +139,9 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 输入和运行 SQ
 
 1. 部署完成后，打开刚创建的 Worker，进入 **Settings → Variables and Secrets**。新增两个类型为 **Secret** 的运行时密钥：
 
-   | 名称 | 值 |
-   | --- | --- |
-   | `SERVERCHAN_UID` | 你的 Server酱³ UID |
+   | 名称                 | 值                     |
+   | -------------------- | ---------------------- |
+   | `SERVERCHAN_UID`     | 你的 Server酱³ UID     |
    | `SERVERCHAN_SENDKEY` | 你的 Server酱³ SendKey |
 
    保存密钥。Build 设置中的变量只供构建过程使用，不能代替 Worker 的运行时密钥；这里要在 Worker 的 Settings 下新增。

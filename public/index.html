@@ -71,21 +71,23 @@
     </main>
     <div id="app-view" hidden>
       <aside class="sidebar">
-        <a href="/" data-page="dashboard" class="sidebar-brand"
-          ><span class="brand-mark"><i class="ph ph-bell-ringing" aria-hidden="true"></i></span
-          ><span class="brand-text">任务提醒</span></a
-        >
-        <button
-          type="button"
-          id="sidebar-toggle"
-          class="sidebar-toggle"
-          aria-label="收起侧栏"
-          aria-expanded="true"
-          aria-controls="sidebar-nav"
-          title="收起侧栏"
-        >
-          <i class="ph ph-caret-double-left" aria-hidden="true"></i>
-        </button>
+        <div class="sidebar-header">
+          <a href="/" data-page="dashboard" class="sidebar-brand"
+            ><span class="brand-mark"><i class="ph ph-bell-ringing" aria-hidden="true"></i></span
+            ><span class="brand-text">任务提醒</span></a
+          >
+          <button
+            type="button"
+            id="sidebar-toggle"
+            class="sidebar-toggle"
+            aria-label="收起侧栏"
+            aria-expanded="true"
+            aria-controls="sidebar-nav"
+            title="收起侧栏"
+          >
+            <i class="ph ph-sidebar-simple" aria-hidden="true"></i>
+          </button>
+        </div>
         <nav id="sidebar-nav" class="sidebar-nav" aria-label="主导航">
           <a href="/" data-page="dashboard"
             ><i class="ph ph-squares-four" aria-hidden="true"></i><span>仪表盘</span></a

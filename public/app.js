@@ -62,7 +62,6 @@ function setSidebarCollapsed(collapsed) {
   button.setAttribute('aria-expanded', String(!collapsed));
   button.setAttribute('aria-label', label);
   button.title = label;
-  button.innerHTML = icon(collapsed ? 'caret-double-right' : 'caret-double-left');
 }
 try {
   setSidebarCollapsed(localStorage.getItem('taskly.sidebarCollapsed') === 'true');

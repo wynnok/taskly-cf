@@ -430,21 +430,42 @@ dialog::backdrop {
   padding: 24px;
 }
 .page-loading {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
   color: var(--text-light);
   font-size: 14px;
+  font-weight: 500;
   line-height: 1.5;
+  white-space: nowrap;
+}
+.page-loading-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-50);
 }
 .page-loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--primary-100);
+  display: block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--primary-200);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: page-loading-spin 0.9s linear infinite;
+}
+@keyframes page-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 #toast {
   position: fixed;

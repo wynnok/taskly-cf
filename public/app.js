@@ -72,7 +72,8 @@ document.querySelectorAll('.sidebar-nav a, .sidebar-brand').forEach((link) => {
   link.title = link.textContent.trim();
 });
 const main = $('#main'),
-  dialog = $('#dialog');
+  dialog = $('#dialog'),
+  pageLoadingMarkup = $('#page-loading-template').innerHTML;
 let toastTimer,
   renderVersion = 0;
 const datetime = (timestamp) =>
@@ -195,8 +196,7 @@ async function renderPage() {
     }[page] + ' - 任务提醒';
   disposeCharts();
   main.classList.add('is-loading');
-  main.innerHTML =
-    '<div class="page-loading" role="status"><span class="page-loading-spinner" aria-hidden="true"></span><span>正在加载…</span></div>';
+  main.innerHTML = pageLoadingMarkup;
   try {
     const html = await {
       dashboard,

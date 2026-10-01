@@ -149,12 +149,15 @@
           <i class="ph ph-sign-out" aria-hidden="true"></i>退出登录
         </button>
       </nav>
-      <main id="main" class="container is-loading" tabindex="-1">
+      <main id="main" class="container" tabindex="-1"></main>
+      <template id="page-loading-template">
         <div class="page-loading" role="status">
-          <span class="page-loading-spinner" aria-hidden="true"></span>
-          <span>正在加载…</span>
+          <span class="page-loading-mark" aria-hidden="true">
+            <span class="page-loading-spinner"></span>
+          </span>
+          <span>正在加载</span>
         </div>
-      </main>
+      </template>
     </div>
     <dialog id="dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
     <div id="toast" role="status" aria-live="polite" hidden></div>

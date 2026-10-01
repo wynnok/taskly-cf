@@ -54,8 +54,8 @@ curl 'http://localhost:8787/cdn-cgi/local/scheduled'
 ### 1. 在网页创建 D1 数据库
 
 1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)，进入 **Workers & Pages → D1 SQL Database**（也可能显示为 **Storage & databases → D1**）。
-2. 点 **Create database**，名称填写 `taskly`，然后点 **Create**。位置可选 Asia-Pacific。
-3. 打开刚创建的 `taskly` 数据库，在页面详情中复制 **Database ID**。稍后要把它填入仓库的配置文件。
+2. 点 **Create database**，名称可填写 `taskly`（这是教程示例，也可以自定义，例如 `taskly-prod`），然后点 **Create**。位置可选 Asia-Pacific。
+3. 打开刚创建的数据库，在页面详情中复制 **Database ID**。稍后要把它填入仓库的配置文件。
 
 Cloudflare 官方：[创建 D1 数据库](https://developers.cloudflare.com/d1/get-started/#2-create-a-database)。
 
@@ -85,10 +85,10 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 粘贴 SQL 并执�
 
 1. 打开 [wynnok/taskly-cf 的 GitHub 仓库](https://github.com/wynnok/taskly-cf)，进入 `wrangler.jsonc`。
 2. 点铅笔图标 **Edit this file**，找到 `d1_databases` 下的 `database_id`。
-3. 把 `00000000-0000-0000-0000-000000000000` 替换为第 1 步复制的 Database ID。保持 `database_name` 为 `taskly`、`binding` 为 `DB`，其它配置不改。
+3. 把 `00000000-0000-0000-0000-000000000000` 替换为第 1 步复制的 Database ID。`database_name` 必须与第 1 步实际创建的 D1 名称一致（默认示例是 `taskly`）；`binding` 保持为 `DB`，其它配置不改。
 4. 点 **Commit changes**，直接提交到 `main`。
 
-`DB` 是 Worker 程序访问数据库时使用的绑定名；数据库 ID 则指向你账号下刚建好的那一个库。部署后可在 Worker 的 **Bindings** 页面确认 D1 绑定显示为 `DB → taskly`。Cloudflare 的绑定说明见[官方 D1 绑定教程](https://developers.cloudflare.com/d1/get-started/#3-bind-your-worker-to-your-d1-database)。
+`DB` 是 Worker 程序访问数据库时使用的绑定变量名，代码通过 `env.DB` 读取它；D1 资源名可以自定义，数据库 ID 指向你账号下的实际数据库。比如你把资源名设为 `taskly-prod`，配置中就写 `"database_name": "taskly-prod"`，同时保留 `"binding": "DB"`。部署后可在 Worker 的 **Bindings** 页面确认绑定显示为 `DB → taskly-prod`（或你选的名称）。Cloudflare 的绑定说明见[官方 D1 绑定教程](https://developers.cloudflare.com/d1/get-started/#3-bind-your-worker-to-your-d1-database)。
 
 ### 4. 在网页创建 Worker，并预先放入 Server酱³密钥
 
@@ -115,7 +115,7 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 粘贴 SQL 并执�
 
    | 设置项 | 填写内容 |
    | --- | --- |
-   | Build command | `npx wrangler d1 migrations apply taskly --remote` |
+   | Build command | `npx wrangler d1 migrations apply DB --remote` |
    | Deploy command | `npx wrangler deploy` |
    | Root directory | `/` 或留空（仓库根目录） |
 
@@ -136,7 +136,7 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 粘贴 SQL 并执�
 
 ## 用 Cloudflare 网页部署（空白新库）
 
-如果不迁移旧数据，跳过生产 SQL 导入。先在 D1 Console 执行仓库的 `migrations/0001_initial.sql`，再按上面的流程创建 Worker、填 D1 ID、设置 `SERVERCHAN_UID` / `SERVERCHAN_SENDKEY` 并连接 GitHub。新库还需要设置 `INITIAL_ADMIN_PASSWORD` Secret。后续发布步骤相同。
+如果不迁移旧数据，跳过生产 SQL 导入。D1 数据库名称可以自定义；创建时记录它的名称和 ID，并在 `wrangler.jsonc` 中将 `database_name` 和 `database_id` 分别设为对应值，`binding` 仍保持为 `DB`。先在 D1 Console 执行仓库的 `migrations/0001_initial.sql`，再按上面的流程创建 Worker、设置 `SERVERCHAN_UID` / `SERVERCHAN_SENDKEY` 并连接 GitHub。新库还需要设置 `INITIAL_ADMIN_PASSWORD` Secret。后续发布步骤相同。
 
 ## 调度行为与兼容范围
 

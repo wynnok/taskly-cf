@@ -8,7 +8,8 @@
     "binding": "ASSETS",
     "run_worker_first": true,
   },
-  "triggers": { "crons": [] },
+  // Keep the production scanner enabled; an empty array removes Cloudflare Cron Triggers.
+  "triggers": { "crons": ["* * * * *"] },
   "d1_databases": [
     {
       "binding": "DB",

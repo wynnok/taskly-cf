@@ -485,9 +485,8 @@ function executionTable(history) {
 async function monitoringPage() {
   const stats = await api('/api/statistics?days=30');
   const scan = stats.scheduler.last_completed,
-    stale =
-      stats.scheduler.last_completed_epoch &&
-      Number(stats.scheduler.last_completed_epoch) < Date.now() - 600000;
+    neverRan = !stats.scheduler.last_completed_epoch,
+    stale = !neverRan && Number(stats.scheduler.last_completed_epoch) < Date.now() - 600000;
   return (
     heading(
       'MONITORING',
@@ -495,7 +494,7 @@ async function monitoringPage() {
       '跟踪每一次提醒，以及任务调度的运行状态。',
       '<button data-action="refresh">刷新</button>',
     ) +
-    `<div class="monitor-grid"><div class="stat-card"><div class="label">上次调度完成</div><div class="number">${escape(scan || '等待首次触发')}</div><div class="detail">${stale ? '超过 10 分钟，请检查 Cloudflare Cron' : '每分钟扫描一次到期任务'}</div></div><div class="stat-card"><div class="label">近 30 天执行</div><div class="number">${stats.executions.total} 次</div><div class="detail">成功 ${stats.executions.success} · 失败 ${stats.executions.failed}</div></div><div class="stat-card"><div class="label">执行中的任务</div><div class="number">${stats.pending_claims}</div><div class="detail">异常中断将在 20 分钟后记录失败</div></div></div><div class="notice">提醒按分钟触发。调度延迟时补扫最近 5 分钟；投递失败记录原因，可在任务页手动重试。</div><section class="panel"><h2>最近执行记录</h2>${executionTable(stats.recent)}</section>`
+    `<div class="monitor-grid"><div class="stat-card"><div class="label">上次调度完成</div><div class="number">${escape(scan || '尚无调度完成记录')}</div><div class="detail">${neverRan ? '请检查 Cloudflare Cron 是否启用；手动执行不能验证自动调度' : stale ? '超过 10 分钟，请检查 Cloudflare Cron' : '每分钟扫描一次到期任务'}</div></div><div class="stat-card"><div class="label">近 30 天执行</div><div class="number">${stats.executions.total} 次</div><div class="detail">成功 ${stats.executions.success} · 失败 ${stats.executions.failed}</div></div><div class="stat-card"><div class="label">执行中的任务</div><div class="number">${stats.pending_claims}</div><div class="detail">异常中断将在 20 分钟后记录失败</div></div></div><div class="notice">提醒按分钟触发。调度延迟时补扫最近 5 分钟；投递失败记录原因，可在任务页手动重试。</div><section class="panel"><h2>最近执行记录</h2>${executionTable(stats.recent)}</section>`
   );
 }
 async function settingsPage() {

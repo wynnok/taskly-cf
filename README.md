@@ -154,6 +154,8 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 输入和运行 SQ
 
    提交到 `main`。Cloudflare 会自动重新构建并部署；Worker 开始每分钟扫描任务。
 
+   **这一步是上线完成的必要条件。** `crons: []` 会删除 Cloudflare 上的全部 Cron Triggers；后续每次部署仍会使用仓库配置，不能只在 Dashboard 临时添加触发器。首次安装的空数组只用于准备密钥，正常运行时必须恢复并保留 `* * * * *`。配置回归测试会拒绝空数组；首次安装准备阶段完成后应再次运行 `npm test`。
+
 原生产库没有 Server酱³ 的 UID/SendKey，所以导入后的默认通道地址为空；设置这两个密钥后，应用会自动构造投递地址。也可以登录应用后在 Webhook 设置页填写完整地址。Server酱³ 接口说明：[官方文档](https://sc3.ft07.com/doc)。
 
 ### 6. 打开应用并完成首次检查
@@ -162,7 +164,8 @@ Cloudflare 官方也演示了在 D1 Dashboard 的 **Console** 输入和运行 SQ
 2. 使用旧应用的用户名和密码登录。原有账号保留，旧明文密码已转成安全哈希；建议登录后在账号设置里更换密码。因为是迁移现有数据库，**不需要**设置 `INITIAL_ADMIN_PASSWORD`。
 3. 进入应用设置，测试 Server酱³ 通道。收到测试消息后，再检查任务列表、分组和执行历史。
 4. 确认 Worker 的 **Bindings** 页面显示 `DB → taskly`（如果你使用自定义数据库名，则显示为 `DB → 你的数据库名`）。Cron 已在上一步通过 GitHub 配置开启，不需要再手工添加。查看触发情况可打开 Worker 的 **Settings → Triggers → Cron Triggers** 或 **View events**。新建/改名后 Cron 事件可能需要一段时间才显示。
-5. 在应用运行监控中查看“上次调度完成”。
+5. 在应用运行监控中查看“上次调度完成”，确认显示实际时间，并在后续一两分钟刷新后推进。如果一直显示“尚无调度完成记录”（旧版本显示“等待首次触发”），调度尚未验证成功；任务开关开启、Cron 下次时间正确、手动执行成功都不能证明自动调度已启动。Cloudflare 修改 Cron 后最多可能需要 15 分钟传播，参见[官方 Cron Triggers 文档](https://developers.cloudflare.com/workers/configuration/cron-triggers/)。
+6. 检查自动执行历史：自动执行的 `source` 为 `scheduled`，并且 `scheduled_for` 为计划分钟的 UTC ISO 时间；手动执行的 `source` 为 `manual`，`scheduled_for` 为空。恢复调度不会补发五分钟以前的遗漏提醒，首次触发只检查当前分钟。
 
 如果是全新安装而不是导入本项目数据库，设置页没有可用账号时，需在 Worker 的 **Settings → Variables and Secrets** 中设置 Secret `INITIAL_ADMIN_PASSWORD` 后重新部署；首次初始化用户名默认为 `admin`，也可用普通变量 `INITIAL_ADMIN_USERNAME` 指定。
 

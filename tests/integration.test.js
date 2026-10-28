@@ -147,9 +147,12 @@ test('simultaneous scheduled events claim one delivery and record one outcome', 
     return Response.json({ code: 0 });
   };
   const scheduled = '2026-09-28T02:00:00.000Z';
+  // /api/statistics filters a rolling 14-day window by real wall clock; seeded executions
+  // must be stamped with the current time or they slide out of the window as time passes.
+  const seedNow = Date.now();
   const outcomes = await Promise.all(
     Array.from({ length: 3 }, () =>
-      executeTask(task, env(), 'scheduled', scheduled, Date.parse(scheduled), fetcher),
+      executeTask(task, env(), 'scheduled', scheduled, seedNow, fetcher),
     ),
   );
   assert.equal(sends, 1);
@@ -162,23 +165,16 @@ test('simultaneous scheduled events claim one delivery and record one outcome', 
     env(),
     'manual',
     null,
-    Date.parse('2026-09-28T02:01:00Z'),
+    seedNow,
     async () => new Response('', { status: 500 }),
   );
   assert.equal(failed.status, 'failed');
   assert.match(failed.error, /HTTP 500/);
   let message;
-  await executeTask(
-    task,
-    env(),
-    'manual',
-    null,
-    Date.parse('2026-09-28T02:02:00Z'),
-    async (_, options) => {
-      message = JSON.parse(options.body).desp;
-      return Response.json({ code: 0 });
-    },
-  );
+  await executeTask(task, env(), 'manual', null, seedNow, async (_, options) => {
+    message = JSON.parse(options.body).desp;
+    return Response.json({ code: 0 });
+  });
   assert.match(message, /本月第 3 次/);
 });
 test('Cron event catches delayed minutes and does not replay after completion', async () => {

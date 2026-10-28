@@ -228,6 +228,8 @@ input[type='checkbox'] {
   border-radius: 999px;
   background: var(--slate-300);
   box-shadow: none;
+  /* Global button centers its inline-flex children; keep the knob at the track start so it stays inside when switched on. */
+  justify-content: flex-start;
 }
 .task-switch:before {
   content: '';

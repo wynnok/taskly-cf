@@ -166,10 +166,11 @@
   min-width: 180px;
 }
 
-.filter-bar select {
+.filter-bar .select {
   flex: 0 0 auto;
   width: auto;
   min-width: 116px;
+  max-width: 220px;
 }
 
 .filter-bar .tag-filter {

@@ -92,6 +92,189 @@ function toast(message) {
     $('#toast').hidden = true;
   }, 4500);
 }
+/* ---------- Select menus ----------
+   The popup a <select> opens is drawn by the OS and cannot follow the page, so
+   each select keeps its value and its form behaviour while a listbox we own
+   draws the menu. The native control stays in the DOM for FormData and
+   validation; the button carries the name and the current value. */
+let openSelectState = null;
+let selectSequence = 0;
+
+function closeSelectOnScroll() {
+  closeSelectMenu(false);
+}
+
+function closeSelectMenu(restoreFocus = false) {
+  if (!openSelectState) return;
+  const state = openSelectState;
+  openSelectState = null;
+  if (state.menu) {
+    state.menu.remove();
+    state.menu = null;
+  }
+  state.button.setAttribute('aria-expanded', 'false');
+  state.button.removeAttribute('aria-activedescendant');
+  window.removeEventListener('scroll', closeSelectOnScroll, true);
+  window.removeEventListener('resize', closeSelectOnScroll);
+  if (restoreFocus) state.button.focus();
+}
+
+function selectLabel(state) {
+  const option = state.select.selectedOptions[0];
+  const text = option ? option.textContent.trim() : '';
+  state.value.textContent = text;
+  state.button.setAttribute('aria-label', state.name ? state.name + '：' + text : text);
+}
+
+function markActiveOption(state, option) {
+  for (const item of state.menu.querySelectorAll('.is-active')) item.classList.remove('is-active');
+  option.classList.add('is-active');
+  state.menu.setAttribute('aria-activedescendant', option.id);
+  option.scrollIntoView({ block: 'nearest' });
+}
+
+function chooseSelectOption(state, option) {
+  const index = [...state.menu.children].indexOf(option);
+  closeSelectMenu(true);
+  if (index < 0 || state.select.selectedIndex === index) return;
+  state.select.selectedIndex = index;
+  selectLabel(state);
+  state.select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function buildSelectMenu(state) {
+  const menu = document.createElement('div');
+  menu.className = 'select__menu';
+  menu.id = state.menuId;
+  menu.tabIndex = -1;
+  menu.setAttribute('role', 'listbox');
+  [...state.select.options].forEach((option, index) => {
+    const item = document.createElement('div');
+    item.className = 'select__option';
+    item.id = state.menuId + '-' + index;
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', String(index === state.select.selectedIndex));
+    item.dataset.value = option.value;
+    item.innerHTML = `${icon('check')}<span>${escape(option.textContent)}</span>`;
+    menu.append(item);
+  });
+  return menu;
+}
+
+function placeSelectMenu(state) {
+  const anchor = state.button.getBoundingClientRect();
+  const menu = state.menu;
+  const height = menu.offsetHeight;
+  const below = window.innerHeight - anchor.bottom;
+  const openUp = below < height + 12 && anchor.top > height + 12;
+  menu.style.minWidth = Math.round(anchor.width) + 'px';
+  menu.style.left = Math.round(anchor.left) + 'px';
+  menu.style.top = Math.round(openUp ? anchor.top - height - 6 : anchor.bottom + 6) + 'px';
+}
+
+function openSelectMenu(state) {
+  closeSelectMenu(false);
+  const host = state.select.closest('dialog') || document.body;
+  state.menu = buildSelectMenu(state);
+  host.append(state.menu);
+  state.button.setAttribute('aria-expanded', 'true');
+  openSelectState = state;
+  placeSelectMenu(state);
+  const selected =
+    state.menu.querySelector('[aria-selected="true"]') || state.menu.firstElementChild;
+  if (selected) markActiveOption(state, selected);
+  state.menu.focus({ preventScroll: true });
+  window.addEventListener('scroll', closeSelectOnScroll, true);
+  window.addEventListener('resize', closeSelectOnScroll);
+  state.menu.addEventListener('click', (event) => {
+    const option = event.target.closest('.select__option');
+    if (option) chooseSelectOption(state, option);
+  });
+  state.menu.addEventListener('pointermove', (event) => {
+    const option = event.target.closest('.select__option');
+    if (option && !option.classList.contains('is-active')) markActiveOption(state, option);
+  });
+  state.menu.addEventListener('keydown', (event) => {
+    const items = [...state.menu.children];
+    const current = state.menu.querySelector('.is-active');
+    const index = items.indexOf(current);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const next =
+        event.key === 'ArrowDown' ? Math.min(items.length - 1, index + 1) : Math.max(0, index - 1);
+      markActiveOption(state, items[next]);
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      markActiveOption(state, event.key === 'Home' ? items[0] : items[items.length - 1]);
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (current) chooseSelectOption(state, current);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSelectMenu(true);
+    } else if (event.key === 'Tab') {
+      closeSelectMenu(false);
+    }
+  });
+}
+
+function enhanceSelect(select) {
+  if (select.dataset.selectEnhanced) return;
+  select.dataset.selectEnhanced = '1';
+  const label = select.closest('label');
+  const name = (
+    select.getAttribute('aria-label') ||
+    (label && label.querySelector(':scope > span')?.textContent) ||
+    ''
+  ).trim();
+  const id = 'select-' + ++selectSequence;
+  const wrapper = document.createElement('span');
+  wrapper.className = 'select';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'select__button';
+  button.setAttribute('aria-haspopup', 'listbox');
+  button.setAttribute('aria-expanded', 'false');
+  const value = document.createElement('span');
+  value.className = 'select__value';
+  button.append(value);
+  button.insertAdjacentHTML('beforeend', icon('caret-down', 'select__chevron'));
+  select.parentNode.insertBefore(wrapper, select);
+  wrapper.append(select, button);
+  select.classList.add('select__native');
+  select.tabIndex = -1;
+  select.setAttribute('aria-hidden', 'true');
+  const state = { select, button, value, menu: null, menuId: id + '-menu', name };
+  selectLabel(state);
+  select.addEventListener('focus', () => button.focus());
+  button.addEventListener('click', () => {
+    if (openSelectState === state) closeSelectMenu(true);
+    else openSelectMenu(state);
+  });
+  button.addEventListener('keydown', (event) => {
+    if (
+      event.key === 'ArrowDown' ||
+      event.key === 'ArrowUp' ||
+      event.key === 'Enter' ||
+      event.key === ' '
+    ) {
+      event.preventDefault();
+      openSelectMenu(state);
+    }
+  });
+}
+
+function enhanceSelects(root) {
+  if (root) root.querySelectorAll('select:not([data-select-enhanced])').forEach(enhanceSelect);
+}
+
+document.addEventListener('pointerdown', (event) => {
+  if (!openSelectState) return;
+  if (event.target.closest('.select__menu, .select__button')) return;
+  closeSelectMenu(false);
+});
+
 function showLogin() {
   state.auth = null;
   disposeCharts();
@@ -189,6 +372,7 @@ async function renderPage() {
       monitoring: '运行监控',
       settings: '设置',
     }[page] + ' - 任务提醒';
+  closeSelectMenu(false);
   disposeCharts();
   main.classList.add('is-loading');
   main.innerHTML = pageLoadingMarkup;
@@ -211,6 +395,7 @@ async function renderPage() {
     ]();
     if (version !== renderVersion || !state.auth) return;
     main.innerHTML = html;
+    enhanceSelects(main);
     if (page === 'dashboard') renderCharts();
   } catch (e) {
     if (version === renderVersion && state.auth)
@@ -541,6 +726,7 @@ async function settingsPage() {
 function showDialog(title, content, footer = '') {
   $('#dialog-content').innerHTML =
     `<div class="dialog-head"><h2 id="dialog-title">${escape(title)}</h2><button class="row-action" data-action="close-dialog" aria-label="关闭">${icon('x')}</button></div><div class="dialog-body">${content}</div>${footer ? `<div class="dialog-foot">${footer}</div>` : ''}`;
+  enhanceSelects($('#dialog-content'));
   if (!dialog.open) dialog.showModal();
 }
 function confirmAction(message, action) {

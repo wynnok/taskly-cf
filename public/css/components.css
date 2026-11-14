@@ -796,6 +796,129 @@ label small {
 }
 
 /* ============================================================
+   Select: the menu the page draws, because the OS menu cannot follow
+   ============================================================ */
+.select {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.select__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.select__button {
+  width: 100%;
+  min-height: var(--control-h);
+  padding: 0 var(--space-10);
+  justify-content: space-between;
+  gap: var(--space-8);
+  border-color: var(--color-field-edge);
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 400;
+  text-align: left;
+}
+
+.select__button:hover {
+  background: var(--color-paper);
+}
+
+.select__button[aria-expanded='true'] {
+  border-color: var(--color-focus);
+}
+
+.select__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select__chevron {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.select__menu {
+  position: fixed;
+  z-index: var(--z-dropdown);
+  max-height: 280px;
+  padding: var(--space-4);
+  overflow-y: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
+  animation: select-menu-in var(--dur-micro) var(--ease-out);
+}
+
+.select__menu:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@keyframes select-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.select__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 32px;
+  padding: 0 var(--space-8);
+  border-radius: var(--radius-xs);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.select__option .ph {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: var(--color-accent);
+  opacity: 0;
+}
+
+.select__option[aria-selected='true'] {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.select__option[aria-selected='true'] .ph {
+  opacity: 1;
+}
+
+.select__option.is-active {
+  background: var(--color-chip);
+}
+
+.select__option[aria-selected='true'].is-active {
+  background: var(--color-accent-soft);
+}
+
+/* ============================================================
    Notices, states, badges
    ============================================================ */
 .notice {

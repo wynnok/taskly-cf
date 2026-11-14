@@ -287,8 +287,8 @@ function renderCharts() {
     danger: token('--chart-danger', '#c92f33'),
     grid: token('--chart-grid', '#e1e3e6'),
     label: token('--chart-label', '#6a6d74'),
-    tooltip: token('--chart-tooltip', '#181b20'),
-    paper: token('--color-paper', '#f6f7fa'),
+    tooltip: token('--chart-tooltip-bg', '#181b20'),
+    tooltipInk: token('--chart-tooltip-ink', '#f6f7fa'),
   };
   const baseTooltip = {
     trigger: 'axis',
@@ -296,7 +296,7 @@ function renderCharts() {
     borderWidth: 0,
     padding: [8, 12],
     extraCssText: 'border-radius:8px;box-shadow:none;',
-    textStyle: { color: palette.paper, fontSize: 12 },
+    textStyle: { color: palette.tooltipInk, fontSize: 12 },
   };
 
   function makeChart(id, option) {
@@ -896,6 +896,11 @@ new ResizeObserver(() => {
     if (main.clientWidth) for (const chart of charts) chart.resize();
   });
 }).observe(main);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (!state.auth || currentPage() !== 'dashboard') return;
+  disposeCharts();
+  renderCharts();
+});
 window.addEventListener('popstate', () => guarded(renderPage));
 async function signedIn(auth) {
   state.auth = auth;

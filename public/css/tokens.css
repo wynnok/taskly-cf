@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
   /* ============================================================
      Type: one family, the platform's own. SF on Apple hardware,
@@ -65,10 +65,11 @@
   --color-wash: oklch(22% 0.012 264 / 0.05);
 
   --color-accent: oklch(53% 0.19 258);
-  --color-accent-hover: oklch(47% 0.19 258);
+  --color-accent-fill: oklch(53% 0.19 258);
+  --color-accent-fill-hover: oklch(47% 0.19 258);
   --color-accent-ink: oklch(99% 0.002 258);
   --color-accent-soft: oklch(95.5% 0.03 258);
-  --color-selected: oklch(22% 0.012 264 / 0.07);
+  --color-control-knob: oklch(99.3% 0.003 264);
   --color-focus: oklch(53% 0.19 258);
 
   --color-success: oklch(53.5% 0.13 152);
@@ -78,6 +79,7 @@
   --color-warn: oklch(45% 0.11 70);
   --color-warn-soft: oklch(97% 0.035 80);
   --color-warn-rule: oklch(88% 0.05 80);
+  --color-chip: oklch(95.5% 0.005 264);
 
   /* Charts read these, so the figures and the page cannot drift. */
   --chart-accent: var(--color-accent);
@@ -85,7 +87,8 @@
   --chart-danger: var(--color-danger);
   --chart-grid: var(--color-rule);
   --chart-label: var(--color-muted);
-  --chart-tooltip: var(--color-ink);
+  --chart-tooltip-bg: var(--color-ink);
+  --chart-tooltip-ink: var(--color-paper);
 
   /* ============================================================
      Form: one radius per nesting level, one shadow, one motion set.
@@ -127,4 +130,54 @@
   --z-modal: 400;
   --z-toast: 500;
   --z-tooltip: 600;
+}
+
+/* ============================================================
+   Dark: the same system re-derived, never inverted. Elevation is
+   lightness (each level a step lighter), hairlines carry structure,
+   and the accent splits: a bright one for text and rings, a deeper
+   one for fills so white labels still clear 4.5:1.
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --color-paper: oklch(16.5% 0.011 264);
+    --color-paper-2: oklch(19.5% 0.012 264);
+    --color-paper-3: oklch(23.5% 0.013 264);
+    --color-surface: oklch(21.5% 0.012 264);
+    --color-ink: oklch(94.5% 0.008 264);
+    --color-ink-2: oklch(77.5% 0.01 264);
+    --color-muted: oklch(66% 0.011 264);
+    --color-rule: oklch(30% 0.012 264);
+    --color-rule-strong: oklch(37% 0.012 264);
+    --color-field-edge: oklch(55% 0.014 264);
+    --color-shadow: oklch(4% 0.008 264);
+    --color-overlay: oklch(4% 0.008 264 / 0.62);
+    --color-wash: oklch(94.5% 0.008 264 / 0.07);
+
+    --color-accent: oklch(68% 0.14 258);
+    --color-accent-fill: oklch(50% 0.16 258);
+    --color-accent-fill-hover: oklch(56% 0.16 258);
+    --color-accent-ink: oklch(99% 0.002 258);
+    --color-accent-soft: oklch(31% 0.06 258);
+    --color-control-knob: oklch(93% 0.006 264);
+    --color-focus: oklch(72% 0.14 258);
+
+    --color-success: oklch(72% 0.12 152);
+    --color-success-soft: oklch(28% 0.04 152);
+    --color-danger: oklch(70% 0.15 25);
+    --color-danger-soft: oklch(29% 0.05 25);
+    --color-warn: oklch(80% 0.1 80);
+    --color-warn-soft: oklch(21% 0.035 80);
+    --color-warn-rule: oklch(33% 0.04 80);
+    --color-chip: oklch(25% 0.012 264);
+
+    --chart-tooltip-bg: var(--color-paper-3);
+    --chart-tooltip-ink: var(--color-ink);
+
+    /* A drop shadow on dark reads as glow; edges come from a ring. */
+    --shadow-1: none;
+    --shadow-2: 0 0 0 1px var(--color-rule);
+  }
 }

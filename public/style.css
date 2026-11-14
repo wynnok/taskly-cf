@@ -2,11 +2,13 @@
  * paper: oklch(97.6% 0.004 264) · accent: oklch(53% 0.19 258) · display: SF via system-ui · body: SF / PingFang SC
  * nav: light sidebar, an accent-tinted selection, a rail when collapsed, a drawer under 60rem
  * signature: the uptime line, a hairline trend chart over four figures parted by rules
- * states: loading, empty, error, full · axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · v2.0.0 */
+ * states: loading, empty, error, full · axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · v2.0.0
+ * modes: light + dark, dark follows the system and is re-derived from the same tokens · elevation is lightness, no shadows, the accent splits (text 68%, fill 50%) */
 /* Hallmark · pre-emit critique: P4 H5 E4 S4 R5 V5 · weakest: P, a console can only argue for calm; the argument is carried by restraint in every screen rather than one line */
 /* Hallmark · waive 1 · the brief asks for the Apple idiom, whose display face is SF and ships with the platform · a bundled display face would contradict the one thing asked for */
 /* Hallmark · finish-review: subagent · 10 findings · 9 resolved 1 partial · gap: none */
 /* Hallmark · dismissed render · the file:// pass of this console cannot resolve /style.css, so it reports a fallback face · the URL pass renders the real face at 1440 */
+/* Hallmark · dismissed 41 · the dark panel inherits the ink the same block re-derives, and the label sits on --color-accent-fill at 5.94 to 1, not on the accent used for text and rings */
 @import url('./css/tokens.css');
 @import url('./css/base.css');
 @import url('./css/components.css');

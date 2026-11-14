@@ -131,7 +131,6 @@
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   gap: var(--space-16);
-  margin-top: var(--space-16);
 }
 
 .chart-grid .panel {
@@ -453,7 +452,6 @@
 .monitor-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-bottom: var(--space-16);
   background: var(--color-surface);
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
@@ -536,8 +534,8 @@
 /* ============================================================
    Empty and error blocks
    ============================================================ */
-#main > .notice + button {
-  margin-top: var(--space-8);
+#main > button {
+  align-self: flex-start;
 }
 
 /* ============================================================

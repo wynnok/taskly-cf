@@ -11,3 +11,5 @@ private/
 coverage/
 .DS_Store
 __pycache__/
+.hallmark/
+.npm-cache/

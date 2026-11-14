@@ -4,7 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#f4f6fb" />
+    <meta name="theme-color" content="#f6f7fa" />
+    <meta
+      name="description"
+      content="任务提醒控制台：创建定时任务，通过 Webhook 发送提醒，并在日历与运行监控中查看调度状态。"
+    />
     <title>任务提醒</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
@@ -14,6 +18,7 @@
     <script src="/app.js" defer></script>
   </head>
   <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
     <main id="login-view" class="login-container" hidden>
       <section class="login-panel">
         <div class="panel login-panel-card">
@@ -21,13 +26,12 @@
             <i class="ph ph-bell-ringing login-brand-icon" aria-hidden="true"></i>
           </div>
           <div class="login-header">
-            <span class="login-kicker">Task Reminder Console</span>
             <h1>任务提醒</h1>
             <p class="login-subtitle">登录后即可管理任务、查看状态并测试发送通道。</p>
           </div>
           <form id="login-form" class="form-grid login-form">
             <label>
-              <span><i class="ph ph-user" aria-hidden="true"></i> 账号</span>
+              <span>账号</span>
               <input
                 name="username"
                 autocomplete="username"
@@ -39,7 +43,7 @@
               <small class="help-text">请输入当前系统管理员账号。</small>
             </label>
             <label>
-              <span><i class="ph ph-lock-key" aria-hidden="true"></i> 密码</span>
+              <span>密码</span>
               <div class="password-field">
                 <input
                   name="password"
@@ -115,7 +119,9 @@
         </div>
       </aside>
       <header class="topbar">
-        <h1><i class="ph ph-bell-ringing" aria-hidden="true"></i> 任务提醒</h1>
+        <div class="topbar-title">
+          <i class="ph ph-bell-ringing" aria-hidden="true"></i> 任务提醒
+        </div>
         <button
           id="mobile-menu"
           class="hamburger-menu"

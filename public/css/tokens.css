@@ -1,0 +1,130 @@
+:root {
+  color-scheme: light;
+
+  /* ============================================================
+     Type: one family, the platform's own. SF on Apple hardware,
+     the native sans elsewhere, PingFang for Chinese.
+     A console writes, it does not perform.
+     ============================================================ */
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  --font-display:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Fixed steps on a 1.14 ratio from 13px: dense, never fluid. */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-title: 1.5rem;
+  --text-display: 1.75rem;
+
+  --tracking-display: -0.022em;
+  --tracking-title: -0.014em;
+
+  /* ============================================================
+     Space: a 4px grid, every value named so no raw length lands
+     in a rule.
+     ============================================================ */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* ============================================================
+     Colour: a cool neutral ground at hue 264, one blue signal.
+     Every value checked against its pair (see stamp).
+     ============================================================ */
+  --color-paper: oklch(97.6% 0.004 264);
+  --color-paper-2: oklch(95.5% 0.005 264);
+  --color-paper-3: oklch(93% 0.006 264);
+  --color-surface: oklch(99.3% 0.003 264);
+  --color-ink: oklch(22% 0.012 264);
+  --color-ink-2: oklch(44% 0.012 264);
+  --color-muted: oklch(53.5% 0.012 264);
+  --color-rule: oklch(91.5% 0.005 264);
+  --color-rule-strong: oklch(86% 0.006 264);
+  --color-field-edge: oklch(64% 0.012 264);
+  --color-shadow: oklch(24% 0.02 264);
+  --color-overlay: oklch(22% 0.012 264 / 0.34);
+  --color-wash: oklch(22% 0.012 264 / 0.05);
+
+  --color-accent: oklch(53% 0.19 258);
+  --color-accent-hover: oklch(47% 0.19 258);
+  --color-accent-ink: oklch(99% 0.002 258);
+  --color-accent-soft: oklch(95.5% 0.03 258);
+  --color-selected: oklch(22% 0.012 264 / 0.07);
+  --color-focus: oklch(53% 0.19 258);
+
+  --color-success: oklch(53.5% 0.13 152);
+  --color-success-soft: oklch(96% 0.022 152);
+  --color-danger: oklch(55% 0.19 25);
+  --color-danger-soft: oklch(96% 0.02 25);
+  --color-warn: oklch(45% 0.11 70);
+  --color-warn-soft: oklch(97% 0.035 80);
+  --color-warn-rule: oklch(88% 0.05 80);
+
+  /* Charts read these, so the figures and the page cannot drift. */
+  --chart-accent: var(--color-accent);
+  --chart-success: var(--color-success);
+  --chart-danger: var(--color-danger);
+  --chart-grid: var(--color-rule);
+  --chart-label: var(--color-muted);
+  --chart-tooltip: var(--color-ink);
+
+  /* ============================================================
+     Form: one radius per nesting level, one shadow, one motion set.
+     ============================================================ */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  --shadow-1: 0 1px 2px var(--color-shadow);
+  --shadow-2:
+    0 16px 40px -16px oklch(24% 0.02 264 / 0.24), 0 2px 8px -2px oklch(24% 0.02 264 / 0.08);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 200ms;
+  --dur-long: 320ms;
+
+  /* ============================================================
+     Shell
+     ============================================================ */
+  --sidebar-w: 236px;
+  --sidebar-rail: 64px;
+  --control-h: 36px;
+  --control-h-sm: 32px;
+  --control-h-xs: 28px;
+  --hit: 44px;
+  --container-max: 1180px;
+  --gutter: 32px;
+
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-sticky-nav: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+}
